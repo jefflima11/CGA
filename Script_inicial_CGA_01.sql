@@ -58,6 +58,7 @@ dt_registro_mensal timestamp not null default current_timestamp(),
 dt_salario timestamp
 );
 
+##view de gastos fixos##
 create view v_gasto_fixo
 as 
 select 	fp.ds_forma_pagamento Pagamento
@@ -73,6 +74,7 @@ from forma_pagamento fp
     
 where fp.cd_forma_pagamento = gf.cd_forma_pagamento;
 
+##viwe de gastos adicionais##
 create view v_gasto_adicional
 as 
 select 	fp.ds_forma_pagamento Pagamento
@@ -88,6 +90,7 @@ from forma_pagamento fp
     
 where fp.cd_forma_pagamento = gad.cd_forma_pagamento;
 
+##View de ganho adicional##
 create view v_ganho_adicional
 as
 select 	fp.ds_forma_pagamento Pagamento
@@ -100,8 +103,9 @@ select 	fp.ds_forma_pagamento Pagamento
           end tp_ref
 from forma_pagamento fp
 	,ganho_adicional gand
-    
 where fp.cd_forma_pagamento = gand.cd_forma_pagamento;
+
+##Dados para testes##
 
 insert into forma_pagamento (ds_forma_pagamento)
 values ('Virtual'),('Fisica'),('Boleto');
@@ -126,7 +130,7 @@ values ('Ferias 2/2',1183.09,1),
 	   ('Guardado',400,1);
        
        
-##Procedure para inserir observação##
+##Procedure de observação##
 delimiter $$
 
 create procedure sp_observacao (
@@ -146,6 +150,115 @@ begin
         
     end if;
 	
+end $$
+
+delimiter ;
+
+##Procedure de ganho adicional##
+delimiter $$
+create procedure sp_ganho_adicional(
+pds_ganho_adicional varchar(50),
+pvl_ganho_adicional decimal(10,2),
+pcd_forma_pagamento int,
+ptp_ref enum('1','2'),
+pdt_referencia timestamp
+)
+begin
+	start transaction;
+		if not exists(select cd_ganho_adicional 
+					  from ganho_adicional  
+                      where ds_ganho_adicional = pds_ganho_adicional
+						and vl_ganho_adicional = pvl_ganho_adicional
+                        and tp_ref = ptp_ref)
+				then
+                insert into ganho_adicional values (null,pds_ganho_adicional,pvl_ganho_adicional,null,current_timestamp(),null,pcd_forma_pagamento,ptp_ref,pdt_referencia);
+                select 'Dados cadastrados com sucesso!' as Resultado;
+                commit;
+		else 
+			rollback;
+            select 'Dados Já cadastrados!' as Resultado;
+         end if;
+end$$
+
+delimiter ; 
+
+##Procedure de gasto adicional##
+delimiter $$
+create procedure sp_gasto_adicional(
+pds_gasto_adicional varchar(50),
+pvl_gasto_adicional decimal(10,2),
+pcd_forma_pagamento int,
+ptp_ref enum('1','2'),
+pdt_referencia timestamp
+)
+begin
+	start transaction;
+		if not exists(select cd_gasto_adicional 
+					  from gasto_adicional  
+                      where ds_gasto_adicional = pds_gasto_adicional
+						and vl_gasto_adicional = pvl_gasto_adicional
+                        and tp_ref = ptp_ref)
+				then
+                insert into gasto_adicional values (null,pds_gasto_adicional,pvl_gasto_adicional,null,current_timestamp(),null,pcd_forma_pagamento,ptp_ref,pdt_referencia);
+                select 'Dados cadastrados com sucesso!' as Resultado;
+                commit;
+		else 
+			rollback;
+            select 'Dados Já cadastrados!' as Resultado;
+         end if;
+end$$
+
+delimiter ; 
+
+##Procedure de gasto fixo##
+delimiter $$
+create procedure sp_gasto_fixo(
+pds_gasto_fixo varchar(50),
+pvl_gasto_fixo decimal(10,2),
+pcd_forma_pagamento int,
+pdt_referencia timestamp,
+ptp_ref enum('1','2')
+)
+begin
+	start transaction;
+		if not exists(select cd_gasto_fixo 
+					  from gasto_fixo  
+                      where ds_gasto_fixo = pds_gasto_fixo
+						and vl_gasto_fixo = pvl_gasto_fixo
+                        and tp_ref = ptp_ref)
+				then
+                insert into gasto_fixo values (null,pds_gasto_fixo,pvl_gasto_fixo,null,current_timestamp(),pcd_forma_pagamento,pdt_referencia,ptp_ref);
+                select 'Dados cadastrados com sucesso!' as Resultado;
+                commit;
+		else 
+			rollback;
+            select 'Dados Já cadastrados!' as Resultado;
+         end if;
+end$$
+
+delimiter ; 
+
+##Procedure de salario##
+delimiter $$
+create procedure sp_salario (
+pvl_salario decimal(10,2),
+pdt_salario timestamp
+)
+begin
+	start transaction;
+		if not exists
+					 (select cd_salario 
+					  from salario 
+                      where vl_salario = pvl_salario
+						and dt_salario = pdt_salario)
+			then 
+				insert into salario values (null,pvl_salario,pdt_salario);
+            select 'Dados cadastros com sucesso!' as Resultado;
+            Commit;
+		else
+			select 'Dados já cadastrados!' as Resultado;
+            rollback;
+		end if;
 end $$
 
 delimiter ;
