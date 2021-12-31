@@ -1,8 +1,8 @@
-create database CGA;
+create database cga;
 
 use cga;
 
-create table Forma_pagamento (
+create table forma_pagamento (
 cd_forma_pagamento int auto_increment primary key,
 ds_forma_pagamento varchar(15) not null
 );
